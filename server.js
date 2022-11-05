@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 // const Address = require('./models/address');
 
 const server = express()
-const bodyParser = require("body-parser");
+const bodyParser = require("body-parser")
 
 server.use(bodyParser.json());
 
