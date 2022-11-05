@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 // const Question = require('./models/question');
 // const Address = require('./models/address');
 
-const server = express()
-const bodyParser = require("body-parser")
+const server = express();
+const bodyParser = require("body-parser");
 
 server.use(bodyParser.json());
 
@@ -66,12 +66,12 @@ server.use((req, res, next) => {
 	next();
 });
 
-const requireLogin = (req, res, next) => {
-	if (req.session.userId == null) {
-		return res.status(401).send("Need to login");
-	}
-	next();
-};
+// const requireLogin = (req, res, next) => {
+// 	if (req.session.userId == null) {
+// 		return res.status(401).send("Need to login");
+// 	}
+// 	next();
+// };
 
 server.get(
 	"/api/test/",
