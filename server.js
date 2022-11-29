@@ -2,9 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 
 const User = require("./models/user");
-// const Response = require('./models/response');
-// const Question = require('./models/question');
-// const Address = require('./models/address');
+const Volunteer = require('./models/volunteer');
 
 //
 const server = express();
@@ -74,7 +72,7 @@ const requireLogin = (req, res, next) => {
 	next();
 };
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3001;
 server.listen(port, () => {
 	console.log("server started!");
 });
@@ -192,5 +190,28 @@ server.delete(
 		res.json(result);
 	}),
 );
+
+/*
+ * Volunteer work
+ */
+
+server.post(
+	"/api/volunteer",
+	wrapAsync(async function (req, res) {
+		const { title, description } = req.body;
+		const volunteerWork = new Volunteer({ title, description });
+		await volunteerWork.save();
+		res.sendStatus(204);
+	}),
+);
+
+server.get(
+	"/api/volunteer",
+	wrapAsync(async function (req, res) {
+		const volunteerWorks = await Volunteer.find({});
+		res.json(volunteerWorks);
+	}),
+);
+
 
 /// ///////////////////////////////////////////////////////////////////////////////
