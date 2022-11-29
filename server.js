@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 
-// const User = require('./models/user');
+const User = require("./models/user");
 // const Response = require('./models/response');
 // const Question = require('./models/question');
 // const Address = require('./models/address');
@@ -67,22 +67,130 @@ server.use((req, res, next) => {
 	next();
 });
 
-// const requireLogin = (req, res, next) => {
-// 	if (req.session.userId == null) {
-// 		return res.status(401).send("Need to login");
-// 	}
-// 	next();
-// };
+const requireLogin = (req, res, next) => {
+	if (req.session.userId == null) {
+		return res.status(401).send("Need to login");
+	}
+	next();
+};
 
-server.get(
-	"/api/test/",
-	wrapAsync(async function (req, res) {
-		console.log("get test");
-		res.json("test string");
-	}),
-);
-
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 5000;
 server.listen(port, () => {
 	console.log("server started!");
 });
+
+/// /////////////////////////////////////////////////////////////////////////////
+
+/*
+ * User
+ */
+
+// register
+server.post(
+	"/api/users",
+	wrapAsync(async function (req, res) {
+		const { name, email, password, address1, address2, profileUrl } = req.body;
+		const user = new User({ name, email, password, address1, address2, profileUrl });
+		console.log(user);
+		await user.save();
+		req.session.userId = user._id;
+		res.sendStatus(204);
+	}),
+);
+
+// login
+server.post(
+	"/api/login",
+	wrapAsync(async function (req, res) {
+		const { email, password } = req.body;
+		console.log(email);
+		const user = await User.findAndValidate(email, password);
+		if (user) {
+			req.session.userId = user._id;
+			res.sendStatus(204);
+		} else {
+			res.sendStatus(401);
+		}
+	}),
+);
+
+// logout
+server.post(
+	"/api/logout",
+	requireLogin,
+	wrapAsync(async function (req, res) {
+		console.log(req.session.userId);
+		req.session.userId = null;
+		res.sendStatus(204);
+	}),
+);
+
+// get users (admin)
+server.get(
+	"/api/users",
+	wrapAsync(async function (req, res) {
+		const users = await User.find({});
+		res.json(users);
+	}),
+);
+
+// get current user (admin)
+server.get(
+	"/api/currentuser",
+	wrapAsync(async function (req, res) {
+		if (req.session.userId === undefined) {
+			res.json({});
+		} else {
+			const currentUser = await User.findById(req.session.userId);
+			res.json(currentUser);
+		}
+	}),
+);
+
+// update user
+server.put(
+	"/api/users/:id",
+	requireLogin,
+	wrapAsync(async function (req, res) {
+		const { id } = req.params;
+		const { name, email, password, address1, address2, profile_url } = req.body;
+		// const addr = new Address({address1, address2})
+		// await addr.save();
+		const user = await User.findById(id);
+		await Address.findByIdAndUpdate(
+			user.address,
+			{
+				address1,
+				address2,
+			},
+			{ runValidators: true },
+		);
+
+		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
+		await User.findByIdAndUpdate(
+			id,
+			{
+				name: req.body.name,
+				email: req.body.email,
+				password: req.body.password,
+				address: user.address,
+				profile_url: req.body.profile_url,
+			},
+			{ runValidators: true },
+		);
+		res.sendStatus(204);
+	}),
+);
+
+// delete user
+server.delete(
+	"/api/users/:id",
+	wrapAsync(async function (req, res) {
+		const { id } = req.params;
+		const result = await User.findByIdAndDelete(id);
+		console.log(`Deleted successfully: ${result}`);
+		res.json(result);
+	}),
+);
+
+/// ///////////////////////////////////////////////////////////////////////////////
