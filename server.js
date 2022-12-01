@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 
 const User = require("./models/user");
-const Volunteer = require('./models/volunteer');
+const Volunteer = require("./models/volunteer");
 
 //
 const server = express();
@@ -87,8 +87,8 @@ server.listen(port, () => {
 server.post(
 	"/api/users",
 	wrapAsync(async function (req, res) {
-		const { name, email, password, address1, address2, profileUrl } = req.body;
-		const user = new User({ name, email, password, address1, address2, profileUrl });
+		const { name, email, password, profile_url, type, gender, dateOfBirth, phoneNumber, SSN } = req.body;
+		const user = new User({ name, email, password, profile_url, type, gender, dateOfBirth, phoneNumber, SSN });
 		console.log(user);
 		await user.save();
 		req.session.userId = user._id;
@@ -151,18 +151,18 @@ server.put(
 	requireLogin,
 	wrapAsync(async function (req, res) {
 		const { id } = req.params;
-		const { name, email, password, address1, address2, profile_url } = req.body;
+		const { name, email, password, profile_url, type, gender, dateOfBirth, phoneNumber, SSN } = req.body;
 		// const addr = new Address({address1, address2})
 		// await addr.save();
 		const user = await User.findById(id);
-		await Address.findByIdAndUpdate(
-			user.address,
-			{
-				address1,
-				address2,
-			},
-			{ runValidators: true },
-		);
+		// await Address.findByIdAndUpdate(
+		// 	user.address,
+		// 	{
+		// 		address1,
+		// 		address2,
+		// 	},
+		// 	{ runValidators: true },
+		// );
 
 		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
 		await User.findByIdAndUpdate(
@@ -171,8 +171,14 @@ server.put(
 				name: req.body.name,
 				email: req.body.email,
 				password: req.body.password,
-				address: user.address,
 				profile_url: req.body.profile_url,
+				type: req.body.type,
+				gender: req.body.gender,
+				dateOfBirth: req.body.dateOfBirth,
+				phoneNumber: req.body.phoneNumber,
+				SSN: req.body.SSN,
+
+				// address: user.address,
 			},
 			{ runValidators: true },
 		);
@@ -212,6 +218,5 @@ server.get(
 		res.json(volunteerWorks);
 	}),
 );
-
 
 /// ///////////////////////////////////////////////////////////////////////////////

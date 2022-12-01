@@ -7,9 +7,14 @@ const UserSchema = new Schema({
 	name: { type: String },
 	email: { type: String, trim: true, unique: true, required: true },
 	password: { type: String, required: true, minlength: 8 },
-	address1: { type: String, required: true },
-	address2: { type: String },
+	// address1: { type: String, required: true },
+	// address2: { type: String },
 	profile_url: { type: String },
+	type: { type: String, required: true },
+	gender: { type: String },
+	dateOfBirth: { type: String },
+	phoneNumber: { type: Number },
+	SSN: { type: Number },
 });
 
 UserSchema.statics.findAndValidate = async function (email, password) {
