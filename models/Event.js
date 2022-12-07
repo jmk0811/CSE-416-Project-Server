@@ -13,13 +13,13 @@ const EventSchema = new Schema({
 	eventEndDate: { type: Date, required: true },
 	thumbnail: { type: String },
 	image: { type: String },
-	address: { type: String, required: true },
+	address: { type: String },
 	// interests: [{ type: String, required: false }], // ?
 	point: { type: Number, required: true },
 	timeSlots: [ // working days
 		{
-			startTime: { type: Date, required: true },
-			endTime: { type: Date, required: true },
+			startTime: { type: Date },
+			endTime: { type: Date },
 			registerLimit: { type: Number },
 			// occupy: { type: Number }, // ?
 			registeredUsers: [{ type: Schema.Types.ObjectID, ref: "User" }],
