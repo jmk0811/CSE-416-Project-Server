@@ -283,6 +283,18 @@ server.get(
 	}),
 );
 
+// delete event
+server.delete(
+	"/api/events/:id",
+	requireLogin,
+	wrapAsync(async function (req, res) {
+		const { id } = req.params;
+		const result = await User.findByIdAndDelete(id);
+		console.log(`Deleted successfully: ${result}`);
+		res.json(result);
+	}),
+);
+
 // ************************************************** //
 
 /*
