@@ -18,7 +18,7 @@
 	"bugs": {
 		"url": "https://github.com/jmk0811/CSE-416-Project-Server/issues"
 	},
-	"homepage": "https://github.com/jmk0811/CSE-416-Project-Server#readme",
+	"homepage": "https://app.herokuapp.com/",
 	"dependencies": {
 		"bcrypt": "^5.1.0",
 		"body-parser": "^1.20.1",
