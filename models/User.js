@@ -7,14 +7,15 @@ const UserSchema = new Schema({
 	name: { type: String },
 	email: { type: String, trim: true, unique: true, required: true },
 	password: { type: String, required: true, minlength: 8 },
-	// address1: { type: String, required: true },
-	// address2: { type: String },
-	profile_url: { type: String },
 	type: { type: String, required: true },
+	address1: { type: String, required: true },
+	address2: { type: String },
+	profileUrl: { type: String },
 	gender: { type: String },
 	dateOfBirth: { type: String },
 	phoneNumber: { type: Number },
-	SSN: { type: Number },
+	events: [{ type: Schema.Types.ObjectID, ref: "Event" }],
+	// interests: [{ type: String }], // optional feature
 });
 
 UserSchema.statics.findAndValidate = async function (email, password) {

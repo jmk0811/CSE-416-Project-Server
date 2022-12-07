@@ -1,10 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 
-const User = require("./models/user");
-const Volunteer = require("./models/volunteer");
-
-//
 const server = express();
 const bodyParser = require("body-parser");
 
@@ -22,6 +18,11 @@ mongoose.connect(dbURL).then(() => {
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
+
+// Import schema
+const User = require("./models/User");
+const Event = require("./models/Event");
+const Certificate = require("./models/Certificate");
 
 const sessionSecret = "make a secret string";
 
@@ -77,19 +78,18 @@ server.listen(port, () => {
 	console.log("server started!");
 });
 
-/// /////////////////////////////////////////////////////////////////////////////
+// ************************************************** //
 
 /*
  * User
  */
 
-// register
+// create user (register)
 server.post(
 	"/api/users",
 	wrapAsync(async function (req, res) {
-		const { name, email, password, profile_url, type, gender, dateOfBirth, phoneNumber, SSN } = req.body;
-		const user = new User({ name, email, password, profile_url, type, gender, dateOfBirth, phoneNumber, SSN });
-		console.log(user);
+		const { name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events } = req.body;
+		const user = new User({ name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events });
 		await user.save();
 		req.session.userId = user._id;
 		res.sendStatus(204);
@@ -101,7 +101,6 @@ server.post(
 	"/api/login",
 	wrapAsync(async function (req, res) {
 		const { email, password } = req.body;
-		console.log(email);
 		const user = await User.findAndValidate(email, password);
 		if (user) {
 			req.session.userId = user._id;
@@ -123,7 +122,7 @@ server.post(
 	}),
 );
 
-// get users (admin)
+// get all users (admin)
 server.get(
 	"/api/users",
 	wrapAsync(async function (req, res) {
@@ -132,7 +131,7 @@ server.get(
 	}),
 );
 
-// get current user (admin)
+// get current user
 server.get(
 	"/api/currentuser",
 	wrapAsync(async function (req, res) {
@@ -151,19 +150,6 @@ server.put(
 	requireLogin,
 	wrapAsync(async function (req, res) {
 		const { id } = req.params;
-		const { name, email, password, profile_url, type, gender, dateOfBirth, phoneNumber, SSN } = req.body;
-		// const addr = new Address({address1, address2})
-		// await addr.save();
-		const user = await User.findById(id);
-		// await Address.findByIdAndUpdate(
-		// 	user.address,
-		// 	{
-		// 		address1,
-		// 		address2,
-		// 	},
-		// 	{ runValidators: true },
-		// );
-
 		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
 		await User.findByIdAndUpdate(
 			id,
@@ -171,14 +157,14 @@ server.put(
 				name: req.body.name,
 				email: req.body.email,
 				password: req.body.password,
-				profile_url: req.body.profile_url,
 				type: req.body.type,
+				address1: req.body.address1,
+				address2: req.body.address2,
+				profileUrl: req.body.profileUrl,
 				gender: req.body.gender,
 				dateOfBirth: req.body.dateOfBirth,
 				phoneNumber: req.body.phoneNumber,
-				SSN: req.body.SSN,
-
-				// address: user.address,
+				events: req.body.events,
 			},
 			{ runValidators: true },
 		);
@@ -189,6 +175,7 @@ server.put(
 // delete user
 server.delete(
 	"/api/users/:id",
+	requireLogin,
 	wrapAsync(async function (req, res) {
 		const { id } = req.params;
 		const result = await User.findByIdAndDelete(id);
@@ -197,26 +184,170 @@ server.delete(
 	}),
 );
 
+// ************************************************** //
+
 /*
- * Volunteer work
+ * Event
  */
 
+// create event
 server.post(
-	"/api/volunteer",
+	"/api/events",
+	requireLogin,
 	wrapAsync(async function (req, res) {
-		const { title, description } = req.body;
-		const volunteerWork = new Volunteer({ title, description });
-		await volunteerWork.save();
+		const {
+			title,
+			description,
+			holder,
+			recruitmentStartDate,
+			recruitmentEndDate,
+			eventStartDate,
+			eventEndDate,
+			thumbnail,
+			image,
+			address,
+			point,
+			timeSlots: { startTime, endTime, registerLimit, registeredUsers },
+		} = req.body;
+		const event = new Event({
+			title,
+			description,
+			holder,
+			recruitmentStartDate,
+			recruitmentEndDate,
+			eventStartDate,
+			eventEndDate,
+			thumbnail,
+			image,
+			address,
+			point,
+			timeSlots: { startTime, endTime, registerLimit, registeredUsers },
+		});
+		await event.save();
 		res.sendStatus(204);
 	}),
 );
 
-server.get(
-	"/api/volunteer",
+// update event
+server.put(
+	"/api/events/:id",
+	requireLogin,
 	wrapAsync(async function (req, res) {
-		const volunteerWorks = await Volunteer.find({});
-		res.json(volunteerWorks);
+		const { id } = req.params;
+		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
+		await User.findByIdAndUpdate(
+			id,
+			{
+				name: req.body.name,
+				email: req.body.email,
+				password: req.body.password,
+				type: req.body.type,
+				address1: req.body.address1,
+				address2: req.body.address2,
+				profileUrl: req.body.profileUrl,
+				gender: req.body.gender,
+				dateOfBirth: req.body.dateOfBirth,
+				phoneNumber: req.body.phoneNumber,
+				events: req.body.events,
+			},
+			{ runValidators: true },
+		);
+		res.sendStatus(204);
 	}),
 );
 
-/// ///////////////////////////////////////////////////////////////////////////////
+// get all events
+server.get(
+	"/api/events",
+	wrapAsync(async function (req, res) {
+		const event = await Event.find({});
+		res.json(event);
+	}),
+);
+
+// get event by id
+server.get(
+	"/api/events/:id",
+	wrapAsync(async function (req, res) {
+		const { id } = req.params;
+		if (mongoose.isValidObjectId(id)) {
+			const event = await Event.findById(id);
+			if (event) {
+				res.json(event);
+			} else {
+				throw new Error("Not Found");
+			}
+		} else {
+			throw new Error("Invalid Id");
+		}
+	}),
+);
+
+// ************************************************** //
+
+/*
+ * Certificate
+ */
+
+// create certificate
+server.post(
+	"/api/certificates",
+	requireLogin,
+	wrapAsync(async function (req, res) {
+		const { issueDate, owner, event, contractAddress } = req.body;
+		const certificate = new Event({ issueDate, owner, event, contractAddress });
+		await certificate.save();
+		res.sendStatus(204);
+	}),
+);
+
+// update certificate
+server.put(
+	"/api/certificates/:id",
+	requireLogin,
+	wrapAsync(async function (req, res) {
+		const { id } = req.params;
+		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
+		await User.findByIdAndUpdate(
+			id,
+			{
+				issueDate: req.body.issueDate,
+				owner: req.body.owner,
+				event: req.body.event,
+				contractAddress: req.body.contractAddress,
+			},
+			{ runValidators: true },
+		);
+		res.sendStatus(204);
+	}),
+);
+
+// get all certificates
+server.get(
+	"/api/certificates",
+	wrapAsync(async function (req, res) {
+		const certificate = await Certificate.find({});
+		res.json(certificate);
+	}),
+);
+
+// get certificate by id
+server.get(
+	"/api/certificates/:id",
+	wrapAsync(async function (req, res) {
+		const { id } = req.params;
+		if (mongoose.isValidObjectId(id)) {
+			const certificate = await Certificate.findById(id);
+			if (certificate) {
+				res.json(certificate);
+			} else {
+				throw new Error("Not Found");
+			}
+		} else {
+			throw new Error("Invalid Id");
+		}
+	}),
+);
+
+// ************************************************** //
+
