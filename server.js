@@ -144,6 +144,24 @@ server.get(
 	}),
 );
 
+// get user by id
+server.get(
+	"/api/users/:id",
+	wrapAsync(async function (req, res) {
+		const { id } = req.params;
+		if (mongoose.isValidObjectId(id)) {
+			const event = await User.findById(id);
+			if (event) {
+				res.json(event);
+			} else {
+				throw new Error("Not Found");
+			}
+		} else {
+			throw new Error("Invalid Id");
+		}
+	}),
+);
+
 // update user
 server.put(
 	"/api/users/:id",
