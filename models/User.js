@@ -15,7 +15,7 @@ const UserSchema = new Schema({
 	dateOfBirth: { type: String },
 	phoneNumber: { type: Number },
 	events: [{ type: Schema.Types.ObjectID, ref: "Event" }],
-	// interests: [{ type: String }], // optional feature
+	interests: [{ type: String }]
 });
 
 UserSchema.statics.findAndValidate = async function (email, password) {

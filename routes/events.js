@@ -26,6 +26,7 @@ router.post(
 			address: req.body.address,
 			point: req.body.point,
 			timeSlots: req.body.timeSlots,
+            interests: req.body.interests,
 		});
 		let id;
 		await event.save(function (error, event) {
@@ -59,6 +60,7 @@ router.put(
 				address: req.body.address,
 				point: req.body.point,
 				timeSlots: req.body.timeSlots,
+                interests: req.body.interests,
 			},
 			{ runValidators: true },
 		);

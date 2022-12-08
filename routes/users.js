@@ -11,8 +11,8 @@ const {wrapAsync, requireLogin} = require('../helper')
 router.post(
 	"/users",
 	wrapAsync(async function (req, res) {
-		const { name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events } = req.body;
-		const user = new User({ name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events });
+		const { name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events, interests } = req.body;
+		const user = new User({ name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events, interests });
 		await user.save();
 		req.session.userId = user._id;
 		res.sendStatus(204);
