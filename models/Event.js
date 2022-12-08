@@ -14,7 +14,7 @@ const EventSchema = new Schema({
 	thumbnail: { type: String },
 	image: { type: String },
 	address: { type: String },
-	// interests: [{ type: String, required: false }], // ?
+	interests: [{ type: String, required: false }],
 	point: { type: Number, required: true },
 	timeSlots: [ // working days
 		{
