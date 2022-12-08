@@ -209,8 +209,9 @@ server.post(
 			point: req.body.point,
 			timeSlots: req.body.timeSlots,
 		});
-		await event.save();
-		res.sendStatus(204);
+		let id;
+		await event.save(function (error, event) {id = event._id});
+		res.end(id);
 	}),
 );
 
@@ -221,20 +222,21 @@ server.put(
 	wrapAsync(async function (req, res) {
 		const { id } = req.params;
 		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
-		await User.findByIdAndUpdate(
+		await Event.findByIdAndUpdate(
 			id,
 			{
-				name: req.body.name,
-				email: req.body.email,
-				password: req.body.password,
-				type: req.body.type,
-				address1: req.body.address1,
-				address2: req.body.address2,
-				profileUrl: req.body.profileUrl,
-				gender: req.body.gender,
-				dateOfBirth: req.body.dateOfBirth,
-				phoneNumber: req.body.phoneNumber,
-				events: req.body.events,
+				title: req.body.title,
+				description: req.body.description,
+				holder: req.body.holder,
+				recruitmentStartDate: req.body.recruitmentStartDate,
+				recruitmentEndDate: req.body.recruitmentEndDate,
+				eventStartDate: req.body.eventStartDate,
+				eventEndDate: req.body.eventEndDate,
+				thumbnail: req.body.thumbnail,
+				image: req.body.image,
+				address: req.body.address,
+				point: req.body.point,
+				timeSlots: req.body.timeSlots,
 			},
 			{ runValidators: true },
 		);
