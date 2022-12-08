@@ -6,8 +6,16 @@ const bodyParser = require("body-parser");
 
 server.use(bodyParser.json());
 
+const cors= require('cors')
+server.use(cors())
+
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+
+// API Routes
+const userRoute = require('./routes/users');
+const eventRoute = require('./routes/events');
+const certificateRoute = require('./routes/certificates');
 
 // TODO: use env
 const dbURL = process.env.MONGO_URL || "mongodb+srv://jmk0811:Ajs67So0RRedoBzO@cluster0.wmdc7up.mongodb.net/?retryWrites=true&w=majority";
@@ -18,11 +26,6 @@ mongoose.connect(dbURL).then(() => {
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
-
-// Import schema
-const User = require("./models/User");
-const Event = require("./models/Event");
-const Certificate = require("./models/Certificate");
 
 const sessionSecret = "make a secret string";
 
@@ -54,322 +57,18 @@ const sessionConfig = {
 
 server.use(session(sessionConfig));
 
-function wrapAsync(fn) {
-	return function (req, res, next) {
-		fn(req, res, next).catch((e) => next(e));
-	};
-}
-
 server.use((req, res, next) => {
 	req.requestTime = Date.now();
 	console.log(req.method, req.path);
 	next();
 });
 
-const requireLogin = (req, res, next) => {
-	if (req.session.userId == null) {
-		return res.status(401).send("Need to login");
-	}
-	next();
-};
+
+server.use('/api', userRoute);
+server.use('/api', eventRoute);
+server.use('/api', certificateRoute);
 
 const port = process.env.PORT || 3001;
 server.listen(port, () => {
 	console.log("server started!");
 });
-
-// ************************************************** //
-
-/*
- * User
- */
-
-// create user (register)
-server.post(
-	"/api/users",
-	wrapAsync(async function (req, res) {
-		const { name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events } = req.body;
-		const user = new User({ name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events });
-		await user.save();
-		req.session.userId = user._id;
-		res.sendStatus(204);
-	}),
-);
-
-// login
-server.post(
-	"/api/login",
-	wrapAsync(async function (req, res) {
-		const { email, password } = req.body;
-		const user = await User.findAndValidate(email, password);
-		if (user) {
-			req.session.userId = user._id;
-			res.sendStatus(204);
-		} else {
-			res.sendStatus(401);
-		}
-	}),
-);
-
-// logout
-server.post(
-	"/api/logout",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		console.log(req.session.userId);
-		req.session.userId = null;
-		res.sendStatus(204);
-	}),
-);
-
-// get all users (admin)
-server.get(
-	"/api/users",
-	wrapAsync(async function (req, res) {
-		const users = await User.find({});
-		res.json(users);
-	}),
-);
-
-// get current user
-server.get(
-	"/api/currentuser",
-	wrapAsync(async function (req, res) {
-		if (req.session.userId === undefined) {
-			res.json({});
-		} else {
-			const currentUser = await User.findById(req.session.userId);
-			res.json(currentUser);
-		}
-	}),
-);
-
-// get user by id
-server.get(
-	"/api/users/:id",
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		if (mongoose.isValidObjectId(id)) {
-			const event = await User.findById(id);
-			if (event) {
-				res.json(event);
-			} else {
-				throw new Error("Not Found");
-			}
-		} else {
-			throw new Error("Invalid Id");
-		}
-	}),
-);
-
-// update user
-server.put(
-	"/api/users/:id",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
-		await User.findByIdAndUpdate(
-			id,
-			{
-				name: req.body.name,
-				email: req.body.email,
-				password: req.body.password,
-				type: req.body.type,
-				address1: req.body.address1,
-				address2: req.body.address2,
-				profileUrl: req.body.profileUrl,
-				gender: req.body.gender,
-				dateOfBirth: req.body.dateOfBirth,
-				phoneNumber: req.body.phoneNumber,
-				events: req.body.events,
-			},
-			{ runValidators: true },
-		);
-		res.sendStatus(204);
-	}),
-);
-
-// delete user
-server.delete(
-	"/api/users/:id",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		const result = await User.findByIdAndDelete(id);
-		console.log(`Deleted successfully: ${result}`);
-		res.json(result);
-	}),
-);
-
-// ************************************************** //
-
-/*
- * Event
- */
-
-// create event
-server.post(
-	"/api/events",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		const event = new Event({
-			title: req.body.title,
-			description: req.body.description,
-			holder: req.body.holder,
-			recruitmentStartDate: req.body.recruitmentStartDate,
-			recruitmentEndDate: req.body.recruitmentEndDate,
-			eventStartDate: req.body.eventStartDate,
-			eventEndDate: req.body.eventEndDate,
-			thumbnail: req.body.thumbnail,
-			image: req.body.image,
-			address: req.body.address,
-			point: req.body.point,
-			timeSlots: req.body.timeSlots,
-		});
-		let id;
-		await event.save(function (error, event) {
-			id = event._id;
-			console.log(event._id);
-		});
-		console.log("id: ", id);
-		res.sendStatus(204);
-	}),
-);
-
-// update event
-server.put(
-	"/api/events/:id",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
-		await Event.findByIdAndUpdate(
-			id,
-			{
-				title: req.body.title,
-				description: req.body.description,
-				holder: req.body.holder,
-				recruitmentStartDate: req.body.recruitmentStartDate,
-				recruitmentEndDate: req.body.recruitmentEndDate,
-				eventStartDate: req.body.eventStartDate,
-				eventEndDate: req.body.eventEndDate,
-				thumbnail: req.body.thumbnail,
-				image: req.body.image,
-				address: req.body.address,
-				point: req.body.point,
-				timeSlots: req.body.timeSlots,
-			},
-			{ runValidators: true },
-		);
-		res.sendStatus(204);
-	}),
-);
-
-// get all events
-server.get(
-	"/api/events",
-	wrapAsync(async function (req, res) {
-		const event = await Event.find({});
-		res.json(event);
-	}),
-);
-
-// get event by id
-server.get(
-	"/api/events/:id",
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		if (mongoose.isValidObjectId(id)) {
-			const event = await Event.findById(id);
-			if (event) {
-				res.json(event);
-			} else {
-				throw new Error("Not Found");
-			}
-		} else {
-			throw new Error("Invalid Id");
-		}
-	}),
-);
-
-// delete event
-server.delete(
-	"/api/events/:id",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		const result = await User.findByIdAndDelete(id);
-		console.log(`Deleted successfully: ${result}`);
-		res.json(result);
-	}),
-);
-
-// ************************************************** //
-
-/*
- * Certificate
- */
-
-// create certificate
-server.post(
-	"/api/certificates",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		const { issueDate, owner, event, contractAddress } = req.body;
-		const certificate = new Event({ issueDate, owner, event, contractAddress });
-		await certificate.save();
-		res.sendStatus(204);
-	}),
-);
-
-// update certificate
-server.put(
-	"/api/certificates/:id",
-	requireLogin,
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
-		await User.findByIdAndUpdate(
-			id,
-			{
-				issueDate: req.body.issueDate,
-				owner: req.body.owner,
-				event: req.body.event,
-				contractAddress: req.body.contractAddress,
-			},
-			{ runValidators: true },
-		);
-		res.sendStatus(204);
-	}),
-);
-
-// get all certificates
-server.get(
-	"/api/certificates",
-	wrapAsync(async function (req, res) {
-		const certificate = await Certificate.find({});
-		res.json(certificate);
-	}),
-);
-
-// get certificate by id
-server.get(
-	"/api/certificates/:id",
-	wrapAsync(async function (req, res) {
-		const { id } = req.params;
-		if (mongoose.isValidObjectId(id)) {
-			const certificate = await Certificate.findById(id);
-			if (certificate) {
-				res.json(certificate);
-			} else {
-				throw new Error("Not Found");
-			}
-		} else {
-			throw new Error("Invalid Id");
-		}
-	}),
-);
-
-// ************************************************** //
-
