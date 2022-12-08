@@ -210,8 +210,12 @@ server.post(
 			timeSlots: req.body.timeSlots,
 		});
 		let id;
-		await event.save(function (error, event) {id = event._id});
-		res.end(id);
+		await event.save(function (error, event) {
+			id = event._id;
+			console.log(event._id);
+		});
+		console.log("id: ", id);
+		res.sendStatus(204);
 	}),
 );
 
