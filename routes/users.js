@@ -106,6 +106,7 @@ router.put(
 				dateOfBirth: req.body.dateOfBirth,
 				phoneNumber: req.body.phoneNumber,
 				events: req.body.events,
+                interests: req.body.interests,
 			},
 			{ runValidators: true },
 		);
