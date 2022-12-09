@@ -13,7 +13,7 @@ const UserSchema = new Schema({
 	profileUrl: { type: String },
 	gender: { type: String },
 	dateOfBirth: { type: String },
-	phoneNumber: { type: Number },
+	phoneNumber: { type: String },
 	events: [{ type: Schema.Types.ObjectID, ref: "Event" }],
 	interests: [{ type: String }]
 });
