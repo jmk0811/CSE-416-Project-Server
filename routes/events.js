@@ -31,7 +31,7 @@ router.post(
 			interests: req.body.interests,
 		});
 		await event.save();
-		const id = event._id;
+		const id = `${event._id}`;
 		res.json(id);
 	}),
 );
