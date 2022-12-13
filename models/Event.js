@@ -16,12 +16,11 @@ const EventSchema = new Schema({
 	address: { type: String },
 	interests: [{ type: String, required: false }],
 	point: { type: Number, required: true },
-	timeSlots: [ // working days
+	timeSlots: [
 		{
 			startTime: { type: Date },
 			endTime: { type: Date },
 			registerLimit: { type: Number },
-			// occupy: { type: Number }, // ?
 			registeredUsers: [{ type: Schema.Types.ObjectID, ref: "User" }],
 		},
 	],

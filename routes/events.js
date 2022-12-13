@@ -1,8 +1,9 @@
+const express = require("express");
 const Event = require("../models/Event");
 const User = require("../models/User");
-const express = require('express');
+
 const router = express.Router();
-const {wrapAsync, requireLogin} = require('../helper')
+const { wrapAsync, requireLogin } = require("../helper");
 const mongoose = require("mongoose");
 
 /*
@@ -27,15 +28,11 @@ router.post(
 			address: req.body.address,
 			point: req.body.point,
 			timeSlots: req.body.timeSlots,
-            interests: req.body.interests,
+			interests: req.body.interests,
 		});
-		let id;
-		await event.save(function (error, event) {
-			id = event._id;
-			console.log(event._id);
-		});
-		console.log("id: ", id);
-		res.sendStatus(204);
+		await event.save();
+		const id = event._id;
+		res.json(id);
 	}),
 );
 
@@ -61,7 +58,7 @@ router.put(
 				address: req.body.address,
 				point: req.body.point,
 				timeSlots: req.body.timeSlots,
-                interests: req.body.interests,
+				interests: req.body.interests,
 			},
 			{ runValidators: true },
 		);

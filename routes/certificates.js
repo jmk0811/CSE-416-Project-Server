@@ -16,7 +16,7 @@ router.post(
 	requireLogin,
 	wrapAsync(async function (req, res) {
 		const { issueDate, owner, event, contractAddress } = req.body;
-		const certificate = new Event({ issueDate, owner, event, contractAddress });
+		const certificate = new Certificate({ issueDate, owner, event, contractAddress });
 		await certificate.save();
 		res.sendStatus(204);
 	}),
