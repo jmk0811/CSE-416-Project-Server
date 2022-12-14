@@ -29,7 +29,7 @@ router.put(
 	wrapAsync(async function (req, res) {
 		const { id } = req.params;
 		console.log(`PUT with id: ${id}, body: ${JSON.stringify(req.body)}`);
-		await User.findByIdAndUpdate(
+		await Certificate.findByIdAndUpdate(
 			id,
 			{
 				issueDate: req.body.issueDate,
