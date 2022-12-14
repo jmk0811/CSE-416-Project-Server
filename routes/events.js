@@ -78,6 +78,7 @@ router.get(
 // get event by id
 router.get(
 	"/events/:id",
+	requireLogin,
 	wrapAsync(async function (req, res) {
 		const { id } = req.params;
 		if (mongoose.isValidObjectId(id)) {
