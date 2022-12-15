@@ -13,8 +13,8 @@ const mongoose = require("mongoose");
 router.post(
 	"/users",
 	wrapAsync(async function (req, res) {
-		const { name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events, interests } = req.body;
-		const user = new User({ name, email, password, type, address1, address2, profileUrl, gender, dateOfBirth, phoneNumber, events, interests });
+		const { name, email, password, type, address1, approvedEvents, profileUrl, gender, dateOfBirth, phoneNumber, events, interests } = req.body;
+		const user = new User({ name, email, password, type, address1, approvedEvents, profileUrl, gender, dateOfBirth, phoneNumber, events, interests });
 		await user.save();
 		req.session.userId = user._id;
 		res.sendStatus(204);
@@ -102,7 +102,7 @@ router.put(
 				password: req.body.password,
 				type: req.body.type,
 				address1: req.body.address1,
-				address2: req.body.address2,
+				approvedEvents: req.body.approvedEvents,
 				profileUrl: req.body.profileUrl,
 				gender: req.body.gender,
 				dateOfBirth: req.body.dateOfBirth,

@@ -9,7 +9,7 @@ const UserSchema = new Schema({
 	password: { type: String, required: true, minlength: 8 },
 	type: { type: String, required: true },
 	address1: { type: String },
-	address2: { type: String },
+	approvedEvents: [{ type: Schema.Types.ObjectID, ref: "Event" }],
 	profileUrl: { type: String },
 	gender: { type: String },
 	dateOfBirth: { type: String },
