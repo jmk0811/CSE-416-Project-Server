@@ -17,7 +17,6 @@ const userRoute = require('./routes/users');
 const eventRoute = require('./routes/events');
 const certificateRoute = require('./routes/certificates');
 
-// TODO: use env
 const dbURL = process.env.MONGO_URL || "mongodb+srv://jmk0811:Ajs67So0RRedoBzO@cluster0.wmdc7up.mongodb.net/?retryWrites=true&w=majority";
 
 mongoose.connect(dbURL).then(() => {
